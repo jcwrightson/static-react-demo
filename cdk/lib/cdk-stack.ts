@@ -13,7 +13,7 @@ export class CdkStack extends cdk.Stack {
     // 1. Hosting Bucket
     const bucket = new s3.Bucket(this, "jcw-static-react-app-hosting", {
       websiteIndexDocument: "index.html",
-      publicReadAccess: true,
+      publicReadAccess: false,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
@@ -32,9 +32,16 @@ export class CdkStack extends cdk.Stack {
           origin: new origins.S3Origin(bucket),
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
-        webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
+        // webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
       }
     );
+
+    const originAccess = new cloudfront.OriginAccessIdentity(
+      this,
+      "jcw-static-react-app-origin"
+    );
+
+    bucket.grantRead(originAccess);
 
     // 3. Add permission boundary
     const boundary = iam.ManagedPolicy.fromManagedPolicyArn(
