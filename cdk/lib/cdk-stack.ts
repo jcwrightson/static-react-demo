@@ -4,7 +4,6 @@ import * as s3 from "@aws-cdk/aws-s3";
 import * as s3Deployment from "@aws-cdk/aws-s3-deployment";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as origins from "@aws-cdk/aws-cloudfront-origins";
-import { ViewerProtocolPolicy } from "@aws-cdk/aws-cloudfront";
 
 export class CdkStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -31,13 +30,14 @@ export class CdkStack extends cdk.Stack {
       {
         defaultBehavior: {
           origin: new origins.S3Origin(bucket),
-          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          viewerProtocolPolicy:
+            cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
         webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
       }
     );
 
-    // 4. Create an identity for cloudFront 
+    // 4. Create an identity for cloudFront
     const originAccess = new cloudfront.OriginAccessIdentity(
       this,
       "jcw-static-react-app-origin"
