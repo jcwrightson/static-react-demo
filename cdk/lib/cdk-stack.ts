@@ -24,6 +24,7 @@ export class CdkStack extends cdk.Stack {
       sources: [s3Deployment.Source.asset("../build")],
     });
 
+    // 3. CloudFront
     const distribution = new cloudfront.Distribution(
       this,
       "jcw-static-react-app-distribution",
@@ -32,18 +33,20 @@ export class CdkStack extends cdk.Stack {
           origin: new origins.S3Origin(bucket),
           viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
-        // webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
+        webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
       }
     );
 
+    // 4. Create an identity for cloudFront 
     const originAccess = new cloudfront.OriginAccessIdentity(
       this,
       "jcw-static-react-app-origin"
     );
 
+    // 5. Allow this identity to read from the bucket from step #1
     bucket.grantRead(originAccess);
 
-    // 3. Add permission boundary
+    // 6. Add permission boundary
     const boundary = iam.ManagedPolicy.fromManagedPolicyArn(
       this,
       "Boundary",
@@ -52,13 +55,13 @@ export class CdkStack extends cdk.Stack {
 
     iam.PermissionsBoundary.of(this).apply(boundary);
 
-    // 4. Outputs
+    // 7. Outputs
     new cdk.CfnOutput(this, "Bucket URL", {
-      value: bucket.bucketDomainName,
+      value: bucket.bucketDomainName, // We can't access at all (403)
     });
 
     new cdk.CfnOutput(this, "CloudFront URL", {
-      value: distribution.distributionDomainName,
+      value: distribution.distributionDomainName, // We can only access on VPN
     });
   }
 }
