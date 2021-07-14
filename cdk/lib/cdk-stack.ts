@@ -2,6 +2,8 @@ import * as cdk from "@aws-cdk/core";
 import * as iam from "@aws-cdk/aws-iam";
 import * as s3 from "@aws-cdk/aws-s3";
 import * as s3Deployment from "@aws-cdk/aws-s3-deployment";
+import * as cloudfront from "@aws-cdk/aws-cloudfront";
+import * as origins from "@aws-cdk/aws-cloudfront-origins";
 
 export class CdkStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -21,6 +23,14 @@ export class CdkStack extends cdk.Stack {
       sources: [s3Deployment.Source.asset("../build")],
     });
 
+    const distribution = new cloudfront.Distribution(
+      this,
+      "jcw-static-react-app-distribution",
+      {
+        defaultBehavior: { origin: new origins.S3Origin(bucket) },
+      }
+    );
+
     // 3. Add permission boundary
     const boundary = iam.ManagedPolicy.fromManagedPolicyArn(
       this,
@@ -33,6 +43,10 @@ export class CdkStack extends cdk.Stack {
     // 4. Outputs
     new cdk.CfnOutput(this, "Bucket URL", {
       value: bucket.bucketDomainName,
+    });
+
+    new cdk.CfnOutput(this, "CloudFront URL", {
+      value: distribution.distributionDomainName,
     });
   }
 }
