@@ -33,6 +33,7 @@ export class CdkStack extends cdk.Stack {
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
+        defaultRootObject: "index.html",
         // webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
       }
     );
