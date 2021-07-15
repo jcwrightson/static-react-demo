@@ -11,8 +11,6 @@ export class CdkStack extends cdk.Stack {
 
     // 1. Hosting Bucket
     const bucket = new s3.Bucket(this, "jcw-static-react-app-hosting", {
-      websiteIndexDocument: "index.html",
-      publicReadAccess: false,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
     });
@@ -21,6 +19,7 @@ export class CdkStack extends cdk.Stack {
     new s3Deployment.BucketDeployment(this, "jcw-static-react-app-deployment", {
       destinationBucket: bucket,
       sources: [s3Deployment.Source.asset("../build")],
+      retainOnDelete: false,
     });
 
     // 3. CloudFront
@@ -33,21 +32,13 @@ export class CdkStack extends cdk.Stack {
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
-        defaultRootObject: "index.html",
+
+        defaultRootObject: "index.html", // CloudFront creates OAI by setting this... good to know AWS. Thanks @mattmurr
         // webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`,
       }
     );
 
-    // 4. Create an identity for cloudFront
-    const originAccess = new cloudfront.OriginAccessIdentity(
-      this,
-      "jcw-static-react-app-origin"
-    );
-
-    // 5. Allow this identity to read from the bucket from step #1
-    bucket.grantRead(originAccess);
-
-    // 6. Add permission boundary
+    // 4. Add permission boundary
     const boundary = iam.ManagedPolicy.fromManagedPolicyArn(
       this,
       "Boundary",
@@ -56,7 +47,7 @@ export class CdkStack extends cdk.Stack {
 
     iam.PermissionsBoundary.of(this).apply(boundary);
 
-    // 7. Outputs
+    // 5. Outputs
     new cdk.CfnOutput(this, "Bucket URL", {
       value: bucket.bucketDomainName, // We can't access at all (403)
     });

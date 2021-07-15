@@ -1,5 +1,10 @@
 import "./App.css";
 
+// Testing
+fetch("https://wf3wtsom40.execute-api.eu-west-1.amazonaws.com/product")
+  .then((res) => res.json())
+  .then(console.log);
+
 function App() {
   return (
     <div className="App">
