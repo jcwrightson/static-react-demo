@@ -2,13 +2,9 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-img{
+img {
   width: 400px;
+  margin: 3rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -30,6 +26,19 @@ img{
 
 .App-link {
   color: #61dafb;
+}
+h1 {
+  margin: 0;
+}
+
+nav {
+  color: white;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  padding: 1rem;
 }
 
 @keyframes App-logo-spin {
