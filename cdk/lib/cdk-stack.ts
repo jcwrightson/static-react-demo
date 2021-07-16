@@ -32,7 +32,13 @@ export class CdkStack extends cdk.Stack {
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
-
+        errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
+          },
+        ],
         defaultRootObject: "index.html", // CloudFront creates OAI by setting this... good to know AWS. Thanks @mattmurr
         webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`, // Add firewall with VPN restriction
       }
