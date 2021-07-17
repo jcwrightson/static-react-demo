@@ -10,6 +10,9 @@ jobs:
     env:
       AWS_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
       WEB_ACL_ID: ${{secrets.WEB_ACL_ID}}
+      NJA_CERT_ID: ${{secrets.ACM_CERT_ID}}
+      NJA_DOMAIN_NAME: ${{secrets.DOMAIN_NAME}}
+      NJA_SUB_DOMAIN: ${{secrets.SUB_DOMAIN}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
