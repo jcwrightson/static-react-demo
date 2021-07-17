@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "npx cdk deploy --profile academy"
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.114.0",
@@ -21,9 +22,12 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
+    "@aws-cdk/aws-certificatemanager": "^1.114.0",
     "@aws-cdk/aws-cloudfront": "^1.114.0",
     "@aws-cdk/aws-cloudfront-origins": "^1.114.0",
     "@aws-cdk/aws-iam": "^1.114.0",
+    "@aws-cdk/aws-lambda": "^1.114.0",
+    "@aws-cdk/aws-route53": "^1.114.0",
     "@aws-cdk/aws-s3": "^1.114.0",
     "@aws-cdk/aws-s3-deployment": "^1.114.0",
     "@aws-cdk/core": "1.114.0",

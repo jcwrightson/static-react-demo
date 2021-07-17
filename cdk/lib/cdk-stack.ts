@@ -4,8 +4,10 @@ import * as s3 from "@aws-cdk/aws-s3";
 import * as s3Deployment from "@aws-cdk/aws-s3-deployment";
 import * as cloudfront from "@aws-cdk/aws-cloudfront";
 import * as origins from "@aws-cdk/aws-cloudfront-origins";
+import * as acm from "@aws-cdk/aws-certificatemanager";
+import * as route53 from "@aws-cdk/aws-route53";
 
-export class CdkStack extends cdk.Stack {
+export class ReactStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -22,7 +24,14 @@ export class CdkStack extends cdk.Stack {
       retainOnDelete: false,
     });
 
-    // 3. CloudFront
+    // 3. Get Cert for SSL
+    const cert = acm.Certificate.fromCertificateArn(
+      this,
+      "cert",
+      `arn:aws:acm:us-east-1:${process.env.AWS_ACCOUNT}:certificate/${process.env.NJA_CERT_ID}`
+    );
+
+    // 4. CloudFront
     const distribution = new cloudfront.Distribution(
       this,
       "jcw-static-react-app-distribution",
@@ -32,6 +41,7 @@ export class CdkStack extends cdk.Stack {
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
+        // React router quick fix
         errorResponses: [
           {
             httpStatus: 403,
@@ -40,12 +50,26 @@ export class CdkStack extends cdk.Stack {
           },
         ],
         defaultRootObject: "index.html", // CloudFront creates OAI by setting this... good to know AWS. Thanks @mattmurr
+        domainNames: [
+          `${process.env.NJA_SUB_DOMAIN}.${process.env.NJA_DOMAIN_NAME}`,
+        ],
+        certificate: cert, // Cert from step #3
+
         // Disabled WAF for now, although works if required
         // webAclId: `arn:aws:wafv2:us-east-1:${process.env.AWS_ACCOUNT}:global/webacl/${process.env.WEB_ACL_ID}`, // Add firewall with VPN restriction
       }
     );
 
-    // 4. Add permission boundary
+    // 5. Create a DNS record to route traffic from our custom url to our distribution
+    const record = new route53.CnameRecord(this, "record", {
+      zone: route53.HostedZone.fromLookup(this, "zone", {
+        domainName: process.env.NJA_DOMAIN_NAME ?? "",
+      }),
+      domainName: distribution.domainName,
+      recordName: `${process.env.NJA_SUB_DOMAIN}.${process.env.NJA_DOMAIN_NAME}`,
+    });
+
+    // 6. Add permission boundary
     const boundary = iam.ManagedPolicy.fromManagedPolicyArn(
       this,
       "Boundary",
@@ -54,13 +78,9 @@ export class CdkStack extends cdk.Stack {
 
     iam.PermissionsBoundary.of(this).apply(boundary);
 
-    // 5. Outputs
-    new cdk.CfnOutput(this, "Bucket URL", {
-      value: bucket.bucketDomainName, // We can't access at all (403)
-    });
-
-    new cdk.CfnOutput(this, "CloudFront URL", {
-      value: distribution.distributionDomainName, // We can only access on VPN
+    // 7. Outputs
+    new cdk.CfnOutput(this, "App URL", {
+      value: record.domainName,
     });
   }
 }
