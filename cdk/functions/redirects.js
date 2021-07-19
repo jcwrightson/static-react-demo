@@ -1,25 +1,7 @@
-exports.handler = (event) => {
-  const {
-    request: { uri },
-    request,
-  } = event;
-
-  console.log(request);
-
-  // Redirect API requests
-  if (uri.includes("/api")) {
-    const redirect = `${process.env.API_URL}/${uri.split("/api/")[1]}`;
-
-    const response = {
-      statusCode: 301,
-      statusDescription: "Found",
-      headers: {
-        "cloudfront-functions": { value: "generated-by-CloudFront-Functions" },
-        location: { value: redirect },
-      },
-    };
-    return response;
-  }
+// eslint-disable-next-line no-unused-vars
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
 
   // Always redirect to root index.html
   if (uri.endsWith("/") || !uri.includes(".")) {
@@ -27,4 +9,4 @@ exports.handler = (event) => {
   }
 
   return request;
-};
+}

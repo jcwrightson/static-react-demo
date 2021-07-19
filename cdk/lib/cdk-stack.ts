@@ -32,6 +32,14 @@ export class ReactStack extends cdk.Stack {
     );
 
     // 4. CloudFront
+
+    // Create function to allow us to manage redirects
+    const redirectsFunction = new cloudfront.Function(this, "redirects", {
+      code: cloudfront.FunctionCode.fromFile({
+        filePath: "functions/redirects.js",
+      }),
+    });
+
     const distribution = new cloudfront.Distribution(
       this,
       "jcw-static-react-app-distribution",
@@ -40,15 +48,18 @@ export class ReactStack extends cdk.Stack {
           origin: new origins.S3Origin(bucket),
           viewerProtocolPolicy:
             cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+              function: redirectsFunction,
+            },
+          ],
         },
-        // React router quick fix
-        errorResponses: [
-          {
-            httpStatus: 403,
-            responseHttpStatus: 200,
-            responsePagePath: "/index.html",
+        additionalBehaviors: {
+          "/api/*": {
+            origin: new origins.HttpOrigin(process.env.API_URL ?? ""),
           },
-        ],
+        },
         defaultRootObject: "index.html", // CloudFront creates OAI by setting this... good to know AWS. Thanks @mattmurr
         domainNames: [
           `${process.env.NJA_SUB_DOMAIN}.${process.env.NJA_DOMAIN_NAME}`,
