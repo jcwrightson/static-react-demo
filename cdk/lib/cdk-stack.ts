@@ -57,7 +57,7 @@ export class ReactStack extends cdk.Stack {
         },
         additionalBehaviors: {
           "/api/*": {
-            origin: new origins.HttpOrigin(process.env.API_URL ?? ""),
+            origin: new origins.HttpOrigin(process.env.NJA_API_URL ?? ""),
           },
         },
         defaultRootObject: "index.html", // CloudFront creates OAI by setting this... good to know AWS. Thanks @mattmurr

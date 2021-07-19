@@ -13,6 +13,7 @@ jobs:
       NJA_CERT_ID: ${{secrets.NJA_CERT_ID}}
       NJA_DOMAIN_NAME: ${{secrets.NJA_DOMAIN_NAME}}
       NJA_SUB_DOMAIN: ${{secrets.NJA_SUB_DOMAIN}}
+      NJA_API_URL: ${{secrets.NJA_API_URL}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
