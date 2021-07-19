@@ -17,21 +17,14 @@ export class ReactStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
-    // 2. Deployment bucket
-    new s3Deployment.BucketDeployment(this, "jcw-static-react-app-deployment", {
-      destinationBucket: bucket,
-      sources: [s3Deployment.Source.asset("../build")],
-      retainOnDelete: false,
-    });
-
-    // 3. Get Cert for SSL
+    // 2. Get Cert for SSL
     const cert = acm.Certificate.fromCertificateArn(
       this,
       "cert",
       `arn:aws:acm:us-east-1:${process.env.AWS_ACCOUNT}:certificate/${process.env.NJA_CERT_ID}`
     );
 
-    // 4. CloudFront
+    // 3. CloudFront
 
     // Create function to allow us to manage redirects
     const redirectsFunction = new cloudfront.Function(this, "redirects", {
@@ -71,11 +64,22 @@ export class ReactStack extends cdk.Stack {
       }
     );
 
+    // 3. Deployment bucket
+    new s3Deployment.BucketDeployment(this, "jcw-static-react-app-deployment", {
+      destinationBucket: bucket,
+      sources: [s3Deployment.Source.asset("../build")],
+      retainOnDelete: false,
+      distribution,
+      distributionPaths: ['/*'],
+    });
+
+    const zone = route53.HostedZone.fromLookup(this, "zone", {
+      domainName: process.env.NJA_DOMAIN_NAME ?? "",
+    });
+
     // 5. Create a DNS record to route traffic from our custom url to our distribution
     const record = new route53.CnameRecord(this, "record", {
-      zone: route53.HostedZone.fromLookup(this, "zone", {
-        domainName: process.env.NJA_DOMAIN_NAME ?? "",
-      }),
+      zone,
       domainName: distribution.domainName,
       recordName: `${process.env.NJA_SUB_DOMAIN}.${process.env.NJA_DOMAIN_NAME}`,
     });
